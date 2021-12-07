@@ -80,13 +80,31 @@ a:visited {
 }
 
 a:hover {
-	/* color: #9e99de; */
 	color: #f2adfa;
 }
 
 .blinking {
 	animation: opacity 1s ease-in-out infinite;
 	opacity: 1;
+}
+
+input {
+	background-color: unset;
+	font-family: "Fira Code";
+	font-size: 24px;
+	color: #adbbfa;
+	padding: 5px;
+	width: 100%;
+	text-align: center;
+	border-top-style: hidden;
+	border-right-style: hidden;
+	border-left-style: hidden;
+	border-bottom-style: solid;
+	border-bottom-color: #cdb7f6;
+}
+input:focus {
+	outline: none;
+	border-bottom-color: #f2adfa;
 }
 
 @keyframes opacity {
