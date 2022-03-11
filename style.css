@@ -1,144 +1,163 @@
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code&display=swap");
 html,
 body {
-  background: #0f1314;
-  font-family: "Fira Code";
-  color: #cdb7f6;
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
+    background: #0f1314;
+    font-family: "Fira Code";
+    color: #cdb7f6;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .container {
-  display: grid;
-  grid-template-columns: 1fr 460px 600px 1fr;
-  grid-template-areas: ". left right .";
-  column-gap: 80px;
-  justify-items: center;
-  align-items: center;
-  min-height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 460px 600px 1fr;
+    grid-template-areas: ". left right .";
+    column-gap: 80px;
+    justify-items: center;
+    align-items: center;
+    min-height: 100%;
 }
 
 .left-container {
-  grid-area: left;
-  aspect-ratio: 1/1;
+    grid-area: left;
+    aspect-ratio: 1/1;
 }
 
 .right-container {
-  grid-area: right;
-  height: 50%;
-  width: 100%;
+    grid-area: right;
+    height: 50%;
+    width: 100%;
 }
 
 .gif img {
-  max-width: 100%;
-  max-height: 100%;
+    max-width: 100%;
+    max-height: 100%;
 }
 
 .head {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 40px;
-  padding-top: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 40px;
+    padding-top: 60px;
 }
 
 .category {
-  display: flex;
-  flex-direction: column;
-  width: 180px;
+    display: flex;
+    flex-direction: column;
+    width: 180px;
 }
 
 .bookmarks {
-  display: flex;
-  justify-content: center;
+    display: flex;
+    justify-content: center;
 }
 
 .links {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 20px;
-  padding-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
 }
 
 .title {
-  font-size: 20px;
+    font-size: 20px;
 }
 
 li {
-  font-size: 16px;
-  list-style-type: none;
-  padding: 5px;
+    font-size: 16px;
+    list-style-type: none;
+    padding: 5px;
 }
 
 a:link,
 a:visited {
-  text-decoration: none;
-  color: #adbbfa;
+    text-decoration: none;
+    color: #adbbfa;
 }
 
 a:hover {
-  color: #f2adfa;
+    color: #f2adfa;
 }
 
 .blinking {
-  animation: opacity 1s ease-in-out infinite;
-  opacity: 1;
+    animation: opacity 1s ease-in-out infinite;
+    opacity: 1;
 }
 
-input {
-  background-color: unset;
-  font-family: "Fira Code";
-  font-size: 24px;
-  color: #adbbfa;
-  padding: 5px;
-  width: 100%;
-  text-align: center;
-  border-top-style: hidden;
-  border-right-style: hidden;
-  border-left-style: hidden;
-  border-bottom-style: solid;
-  border-bottom-color: #cdb7f6;
+/* input {
+    background-color: unset;
+    font-family: "Fira Code";
+    font-size: 24px;
+    color: #adbbfa;
+    padding: 5px;
+    width: 100%;
+    text-align: center;
+    border-top-style: hidden;
+    border-right-style: hidden;
+    border-left-style: hidden;
+    border-bottom-style: solid;
+    border-bottom-color: #cdb7f6;
 }
 input:focus {
-  outline: none;
-  border-bottom-color: #f2adfa;
-}
+    outline: none;
+    border-bottom-color: #f2adfa;
+} */
 
 @keyframes opacity {
-  0% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 1;
+    }
 
-  50% {
-    opacity: 0;
-  }
+    50% {
+        opacity: 0;
+    }
 
-  100% {
-    opacity: 1;
-  }
+    100% {
+        opacity: 1;
+    }
 }
-.search-form {
-  background: red;
-  visibility: visible;
+.search-input {
+    background-color: unset;
+    font-family: "Fira Code";
+    font-size: 24px;
+    color: #adbbfa;
+    padding: 5px 0 5px;
+    width: 100%;
+    text-align: center;
+    border-top-style: hidden;
+    border-right-style: hidden;
+    border-left-style: hidden;
+    border-bottom-style: solid;
+    border-bottom-color: #cdb7f6;
+}
+
+.search-input:focus {
+    outline: none;
+    border-bottom-color: #f2adfa;
 }
 
 .search-form-content {
-  width: 100%;
+    width: 100%;
 }
 
-.search-input {
-  width: 100%;
-  text-align: center;
-}
+/* .search-input {
+width: 100%;
+text-align: center;
+} */
 
-.search-suggestions {
-  display: none;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-top: 2rem;
-  overflow: hidden;
-}
+/* .search-suggestions {
+display: none;
+justify-content: center;
+align-items: center;
+flex-wrap: wrap;
+margin-top: 2rem;
+overflow: hidden;
+} */
+
+/* .left-container .search-suggestions {
+display: flex;
+} */
