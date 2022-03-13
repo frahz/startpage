@@ -22,7 +22,9 @@ body {
 
 .left-container {
     grid-area: left;
-    aspect-ratio: 1/1;
+    width: 460px;
+    /* aspect-ratio: 1/1; */
+    overflow: hidden;
 }
 
 .right-container {
@@ -88,25 +90,6 @@ a:hover {
     opacity: 1;
 }
 
-/* input {
-    background-color: unset;
-    font-family: "Fira Code";
-    font-size: 24px;
-    color: #adbbfa;
-    padding: 5px;
-    width: 100%;
-    text-align: center;
-    border-top-style: hidden;
-    border-right-style: hidden;
-    border-left-style: hidden;
-    border-bottom-style: solid;
-    border-bottom-color: #cdb7f6;
-}
-input:focus {
-    outline: none;
-    border-bottom-color: #f2adfa;
-} */
-
 @keyframes opacity {
     0% {
         opacity: 1;
@@ -125,39 +108,51 @@ input:focus {
     font-family: "Fira Code";
     font-size: 24px;
     color: #adbbfa;
-    padding: 5px 0 5px;
+    padding: 5px 0 0;
     width: 100%;
     text-align: center;
     border-top-style: hidden;
     border-right-style: hidden;
     border-left-style: hidden;
     border-bottom-style: solid;
-    border-bottom-color: #cdb7f6;
+    border-color: #cdb7f6;
 }
 
 .search-input:focus {
     outline: none;
-    border-bottom-color: #f2adfa;
+    border-color: #f2adfa;
 }
 
 .search-form-content {
     width: 100%;
 }
 
-/* .search-input {
-width: 100%;
-text-align: center;
-} */
+.search-suggestions {
+    display: none;
+    justify-content: center;
+    padding: 0;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
 
-/* .search-suggestions {
-display: none;
-justify-content: center;
-align-items: center;
-flex-wrap: wrap;
-margin-top: 2rem;
-overflow: hidden;
-} */
+.left-container.suggestions .search-suggestions {
+    display: flex;
+}
 
-/* .left-container .search-suggestions {
-display: flex;
-} */
+.search-suggestion {
+    background-color: unset;
+    font-family: "Fira Code";
+    font-size: 24px;
+    color: #adbbfa;
+    border-top-style: hidden;
+    border-right-style: hidden;
+    border-left-style: hidden;
+    border-bottom-style: solid;
+    border-color: #cdb7f6;
+}
+
+.search-suggestion:hover {
+    border-right-style: solid;
+    border-left-style: solid;
+    border-color: #f2adfa;
+}
