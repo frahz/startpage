@@ -56,39 +56,192 @@ class DuckDuckGoInfluencer extends Influencer {
     }
 }
 
-class Suggestor {
+class Suggester {
     constructor(options) {
         this.limit = options.limit;
         this.el = short.el("#search-suggestions");
+    }
+
+    buildSuggestions(newSuggestions) {
+        const acc = "";
+        const suggestionHtml = `<span class="search-suggestion-match">${newSuggestions}</span>`;
+        const suggestions = `
+        ${acc}
+        <li>
+        <button
+          type="button"
+          class="search-suggestion"
+          data-suggestion="${newSuggestions}"
+          tabindex="-1"
+        >
+          ${suggestionHtml}
+        </button>
+      </li>
+        `;
+        short.classAdd("suggestions");
+        return suggestions.repeat(this.limit);
+    }
+
+    setSuggestions(newSuggestions) {
+        this.el.innerHTML = this.buildSuggestions(newSuggestions);
+    }
+    removeSuggestions() {
+        this.el.innerHTML = "";
+    }
+}
+
+class QueryParser {
+    constructor(options) {
+        this.commands = options.commands;
+        this.searchDelimiter = options.searchDelimiter;
+        this.pathDelimiter = options.pathDelimiter;
+        this.scripts = options.scripts;
+        this.protocolRegex = /^[a-zA-Z]+:\/\//i;
+        this.urlRegex =
+            /^((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)$/i;
+        this.parse = this.parse.bind(this);
+    }
+    parse(query) {
+        const res = [];
+        res.raw = query.trim();
+        res.query = res.raw;
+        res.lower = res.raw.toLowerCase();
+        res.split = null;
+
+        if (this.urlRegex.test(query)) {
+            const hasProtocol = this.protocolRegex.test(query);
+            res.redirect = hasProtocol ? query : "http://" + query;
+            return res;
+        }
+
+        const splitSearch = res.query.split(this.searchDelimiter);
+        const splitPath = res.query.split(this.pathDelimiter);
+
+        const isScript = Object.entries(this.scripts).some(([key, script]) => {
+            if (query === key) {
+                res.key = key;
+                res.isKey = true;
+                script.forEach((command) => res.push(this.parse(command)));
+                return true;
+            }
+
+            if (splitSearch[0] === key) {
+                res.key = key;
+                res.isSearch = true;
+                res.split = this.searchDelimiter;
+                res.query = QueryParser._shiftAndTrim(splitSearch, res.split);
+                res.lower = res.query.toLowerCase();
+
+                script.forEach((command) =>
+                    res.push(this.parse(`${command}${res.split}${res.query}`))
+                );
+
+                return true;
+            }
+
+            if (splitPath[0] === key) {
+                res.key = key;
+                res.isPath = true;
+                res.split = this.pathDelimiter;
+                res.path = QueryParser._shiftAndTrim(splitPath, res.split);
+
+                script.forEach((command) =>
+                    res.push(
+                        this.parse(
+                            `${command}${this._pathDelimiter}${res.path}`
+                        )
+                    )
+                );
+
+                return true;
+            }
+        });
+
+        if (isScript) return res;
+
+        this.commands.some(({ key, search, url }) => {
+            if (query === key) {
+                res.key = key;
+                res.isKey = true;
+                res.redirect = url;
+                return true;
+            }
+
+            if (splitSearch[0] === key) {
+                res.key = key;
+                res.isSearch = true;
+                res.split = this._searchDelimiter;
+                res.query = QueryParser._shiftAndTrim(splitSearch, res.split);
+                res.lower = res.query.toLowerCase();
+                res.redirect = QueryParser._prepSearch(url, search, res.query);
+                return true;
+            }
+
+            if (splitPath[0] === key) {
+                res.key = key;
+                res.isPath = true;
+                res.split = this._pathDelimiter;
+                res.path = QueryParser._shiftAndTrim(splitPath, res.split);
+                res.redirect = QueryParser._prepPath(url, res.path);
+                return true;
+            }
+
+            if (key === "*") {
+                res.redirect = QueryParser._prepSearch(url, search, query);
+            }
+        });
+        return res;
+    }
+
+    static _prepPath(url, path) {
+        return QueryParser._stripUrlPath(url) + "/" + path;
+    }
+
+    static _prepSearch(url, searchPath, query) {
+        if (!searchPath) return url;
+        const baseUrl = QueryParser._stripUrlPath(url);
+        const urlQuery = encodeURIComponent(query);
+        searchPath = searchPath.replace(/{}/g, urlQuery);
+        return baseUrl + searchPath;
+    }
+
+    static _shiftAndTrim(arr, delimiter) {
+        arr.shift();
+        return arr.join(delimiter).trim();
+    }
+
+    static _stripUrlPath(url) {
+        const parser = document.createElement("a");
+        parser.href = url;
+        return `${parser.protocol}//${parser.hostname}`;
+    }
+}
+
+class Form {
+    constructor(options) {
         this.formEl = short.el("#search-form");
         this.inputEl = short.el("#search-input");
+        this.inputElValue = "";
+        this.newTab = options.newTab;
+        this.instantRedirect = options.instantRedirect;
+        this.suggester = options.suggester;
+        // this.parseQuery = options.parseQuery;
         this.handleInput = this.handeInput.bind(this);
         this.registerEvent();
     }
 
+    hide() {
+        short.classRemove("suggestions");
+        this.inputEl.value = "";
+        this.inputElValue = "";
+        suggester.removeSuggestions();
+    }
     handeInput() {
         const newQuery = this.inputEl.value;
         if (!newQuery) {
-            short.classRemove("suggestions");
-            this.el.innerHTML = "";
+            this.hide();
         } else {
-            const acc = "";
-            const suggestionHtml = `<span class="search-suggestion-match">${newQuery}</span>`;
-            const suggestions = `
-            ${acc}
-            <li>
-            <button
-              type="button"
-              class="search-suggestion"
-              data-suggestion="${newQuery}"
-              tabindex="-1"
-            >
-              ${suggestionHtml}
-            </button>
-          </li>
-            `;
-            short.classAdd("suggestions");
-            this.el.innerHTML = suggestions.repeat(this.limit);
+            this.suggester.setSuggestions(newQuery);
         }
     }
 
@@ -96,7 +249,20 @@ class Suggestor {
         this.inputEl.addEventListener("input", this.handleInput);
     }
 }
+const queryParser = new QueryParser({
+    commands: CONFIG.commands,
+    pathDelimiter: CONFIG.queryPathDelimiter,
+    scripts: CONFIG.scripts,
+    searchDelimiter: CONFIG.querySearchDelimiter,
+});
 
-const suggestor = new Suggestor({
+const suggester = new Suggester({
     limit: CONFIG.suggestionLimit,
+});
+
+const form = new Form({
+    newTab: CONFIG.queryNewTab,
+    instantRedirect: CONFIG.queryInstantRedirect,
+    suggester,
+    parseQuery: queryParser.parse,
 });
