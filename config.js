@@ -94,5 +94,41 @@ const CONFIG = {
             search: "/search?p={}",
             url: "https://search.yahoo.com",
         },
+        {
+            key: "y",
+            name: "YouTube",
+            search: "/results?search_query={}",
+            url: "https://youtube.com/feed/subscriptions",
+        },
+        {
+            key: "r",
+            name: "Reddit",
+            search: "/search?q={}",
+            url: "https://www.reddit.com",
+        },
+        {
+            key: "g",
+            name: "GitHub",
+            search: "/search?q={}",
+            url: "https://github.com",
+        },
+        {
+            key: ";",
+            name: "MDN",
+            search: "/en-US/search?q={}",
+            url: "https://developer.mozilla.org/en-US",
+        },
+        {
+            key: "t",
+            name: "Twitter",
+            search: "/search?q={}",
+            url: "https://twitter.com/home",
+        },
+        {
+            key: "s",
+            name: "Spotify",
+            search: "/search/{}",
+            url: "https://open.spotify.com",
+        },
     ],
 };
