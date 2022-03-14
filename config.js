@@ -53,6 +53,14 @@ const CONFIG = {
     ],
 
     /**
+     * Default search suggestions for the specified queries.
+     * None
+     */
+    suggestionDefaults: {
+        y: ["y/feed/trending"],
+    },
+
+    /**
      * Max number of suggestions that will ever be shown.
      */
     suggestionLimit: 4,
