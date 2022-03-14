@@ -2,6 +2,7 @@ const short = {
     el: (s) => document.querySelector(s),
     classAdd: (c) => short.el("div.left-container").classList.add(c),
     classRemove: (c) => short.el("div.left-container").classList.remove(c),
+    flattenAndUnique: (arr) => [...new Set([].concat.apply([], arr))],
 };
 
 class Influencer {
@@ -28,6 +29,19 @@ class Influencer {
     }
 }
 
+class DefaultInfluencer extends Influencer {
+    constructor({ suggestionDefaults }) {
+        super(...arguments);
+        this._suggestionDefaults = suggestionDefaults;
+    }
+
+    getSuggestions({ raw }) {
+        return new Promise((resolve) =>
+            resolve((this._suggestionDefaults[raw] || []).slice(0, this._limit))
+        );
+    }
+}
+
 class DuckDuckGoInfluencer extends Influencer {
     constructor() {
         super(...arguments);
@@ -50,43 +64,119 @@ class DuckDuckGoInfluencer extends Influencer {
                 );
 
             const script = document.createElement("script");
-            script.src = `https://duckduckgo.com/ac/?callback=autocompleteCallback&q=short{query}`;
+            script.src = `https://duckduckgo.com/ac/?callback=autocompleteCallback&q=${query}`;
             short.el("head").appendChild(script);
         });
     }
 }
 
-class Suggester {
-    constructor(options) {
-        this.limit = options.limit;
-        this.el = short.el("#search-suggestions");
+class HistoryInfluencer extends Influencer {
+    constructor() {
+        super(...arguments);
+        this._storeName = "history";
     }
 
-    buildSuggestions(newSuggestions) {
-        const acc = "";
-        const suggestionHtml = `<span class="search-suggestion-match">${newSuggestions}</span>`;
-        const suggestions = `
-        ${acc}
+    addItem({ isPath, lower }) {
+        if (isPath || this._isTooShort(lower)) return;
+        let exists;
+
+        const history = this._getHistory().map(([item, count]) => {
+            const match = item === lower;
+            if (match) exists = true;
+            return [item, match ? count + 1 : count];
+        });
+
+        if (!exists) history.push([lower, 1]);
+        this._setHistory(history.sort((a, b) => b[1] - a[1]));
+    }
+
+    getSuggestions(parsedQuery) {
+        const { lower } = parsedQuery;
+        if (this._isTooShort(lower)) return Promise.resolve([]);
+
+        return new Promise((resolve) =>
+            resolve(
+                this._addSearchPrefix(
+                    this._getHistory()
+                        .filter(
+                            ([item]) => item !== lower && item.includes(lower)
+                        )
+                        .slice(0, this._limit)
+                        .map(([item]) => item),
+                    parsedQuery
+                )
+            )
+        );
+    }
+
+    _getHistory() {
+        this._history =
+            this._history ||
+            JSON.parse(localStorage.getItem(this._storeName)) ||
+            [];
+
+        return this._history;
+    }
+
+    _setHistory(history) {
+        this._history = history;
+        localStorage.setItem(this._storeName, JSON.stringify(history));
+    }
+}
+
+class Suggester {
+    constructor(options) {
+        this.searchEl = short.el("#search-suggestions");
+
+        this.influencers = options.influencers;
+        this.limit = options.limit;
+        this.parsedQuery = "";
+    }
+
+    suggest(parsedQuery) {
+        this.parsedQuery = parsedQuery;
+
+        if (!parsedQuery.query) {
+            this.removeSuggestions();
+            return;
+        }
+
+        Promise.all(this.getInfluencers()).then(this.setSuggestions);
+    }
+
+    buildSuggestions(suggestions) {
+        return suggestions.slice(0, this.limit).reduce((acc, suggestion) => {
+            const suggestionHtml = `<span class="search-suggestion-match">${suggestion}</span>`;
+            return `
         <li>
         <button
           type="button"
           class="search-suggestion"
-          data-suggestion="${newSuggestions}"
+          data-suggestion="${suggestion}"
           tabindex="-1"
         >
           ${suggestionHtml}
         </button>
       </li>
         `;
-        short.classAdd("suggestions");
-        return suggestions.repeat(this.limit);
+        });
     }
 
     setSuggestions(newSuggestions) {
-        this.el.innerHTML = this.buildSuggestions(newSuggestions);
+        const suggestions = short.flattenAndUnique(newSuggestions);
+        console.log(suggestions);
+        this.searchEl.innerHTML = this.buildSuggestions(suggestions);
+        short.classAdd("suggestions");
     }
+
+    getInfluencers() {
+        return this.influencers.map((inf) =>
+            inf.getSuggestions(this.parsedQuery)
+        );
+    }
+
     removeSuggestions() {
-        this.el.innerHTML = "";
+        this.searchEl.innerHTML = "";
     }
 }
 
@@ -170,7 +260,7 @@ class QueryParser {
             if (splitSearch[0] === key) {
                 res.key = key;
                 res.isSearch = true;
-                res.split = this._searchDelimiter;
+                res.split = this.searchDelimiter;
                 res.query = QueryParser._shiftAndTrim(splitSearch, res.split);
                 res.lower = res.query.toLowerCase();
                 res.redirect = QueryParser._prepSearch(url, search, res.query);
@@ -180,7 +270,7 @@ class QueryParser {
             if (splitPath[0] === key) {
                 res.key = key;
                 res.isPath = true;
-                res.split = this._pathDelimiter;
+                res.split = this.pathDelimiter;
                 res.path = QueryParser._shiftAndTrim(splitPath, res.split);
                 res.redirect = QueryParser._prepPath(url, res.path);
                 return true;
@@ -225,7 +315,7 @@ class Form {
         this.newTab = options.newTab;
         this.instantRedirect = options.instantRedirect;
         this.suggester = options.suggester;
-        // this.parseQuery = options.parseQuery;
+        this.parseQuery = options.parseQuery;
         this.handleInput = this.handeInput.bind(this);
         this.registerEvent();
     }
@@ -238,10 +328,12 @@ class Form {
     }
     handeInput() {
         const newQuery = this.inputEl.value;
+        const parsedQuery = this.parseQuery(newQuery);
         if (!newQuery) {
             this.hide();
         } else {
-            this.suggester.setSuggestions(newQuery);
+            this.suggester.suggest(parsedQuery);
+            // this.suggester.setSuggestions(parsedQuery["redirect"]);
         }
     }
 
@@ -249,6 +341,7 @@ class Form {
         this.inputEl.addEventListener("input", this.handleInput);
     }
 }
+
 const queryParser = new QueryParser({
     commands: CONFIG.commands,
     pathDelimiter: CONFIG.queryPathDelimiter,
@@ -256,7 +349,20 @@ const queryParser = new QueryParser({
     searchDelimiter: CONFIG.querySearchDelimiter,
 });
 
+const influencers = CONFIG.suggestionInfluencers.map((influencerConfig) => {
+    return new {
+        Default: DefaultInfluencer,
+        DuckDuckGo: DuckDuckGoInfluencer,
+        History: HistoryInfluencer,
+    }[influencerConfig.name]({
+        limit: influencerConfig.limit,
+        minChars: influencerConfig.minChars,
+        suggestionDefaults: CONFIG.suggestionDefaults,
+    });
+});
+
 const suggester = new Suggester({
+    influencers,
     limit: CONFIG.suggestionLimit,
 });
 
