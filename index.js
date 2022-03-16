@@ -131,6 +131,8 @@ class Suggester {
         this.influencers = options.influencers;
         this.limit = options.limit;
         this.parsedQuery = "";
+        this.setSuggestions = this.setSuggestions.bind(this);
+        this.buildSuggestions = this.buildSuggestions.bind(this);
     }
 
     suggest(parsedQuery) {
@@ -148,6 +150,7 @@ class Suggester {
         return suggestions.slice(0, this.limit).reduce((acc, suggestion) => {
             const suggestionHtml = `<span class="search-suggestion-match">${suggestion}</span>`;
             return `
+        ${acc}
         <li>
         <button
           type="button"
@@ -159,12 +162,11 @@ class Suggester {
         </button>
       </li>
         `;
-        });
+        }, "");
     }
 
     setSuggestions(newSuggestions) {
         const suggestions = short.flattenAndUnique(newSuggestions);
-        console.log(suggestions);
         this.searchEl.innerHTML = this.buildSuggestions(suggestions);
         short.classAdd("suggestions");
     }
