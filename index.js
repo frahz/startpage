@@ -130,6 +130,7 @@ class Suggester {
 
         this.influencers = options.influencers;
         this.limit = options.limit;
+        this.queryParser = options.parseQuery;
         this.parsedQuery = "";
         this.setSuggestions = this.setSuggestions.bind(this);
         this.buildSuggestions = this.buildSuggestions.bind(this);
@@ -152,14 +153,14 @@ class Suggester {
             return `
         ${acc}
         <li>
-        <button
-          type="button"
+        <a
+          href="${this.queryParser(suggestion).redirect}"
           class="search-suggestion"
           data-suggestion="${suggestion}"
           tabindex="-1"
         >
           ${suggestionHtml}
-        </button>
+        </a>
       </li>
         `;
         }, "");
@@ -345,7 +346,7 @@ class Form {
     }
     submitForm() {
         const parsedQuery = this.parseQuery(this.inputEl.value);
-        this.redirect(parsedQuery.redirect);
+        this.redirect(parsedQuery.redirect, false);
     }
 
     submitValue(value) {
@@ -388,6 +389,7 @@ const influencers = CONFIG.suggestionInfluencers.map((influencerConfig) => {
 const suggester = new Suggester({
     influencers,
     limit: CONFIG.suggestionLimit,
+    parseQuery: queryParser.parse,
 });
 
 const form = new Form({
