@@ -319,6 +319,9 @@ class Form {
         this.suggester = options.suggester;
         this.parseQuery = options.parseQuery;
         this.handleInput = this.handeInput.bind(this);
+        this.submitForm = this.submitForm.bind(this);
+        this.submitValue = this.submitValue.bind(this);
+        this.hide = this.hide.bind(this);
         this.registerEvent();
     }
 
@@ -331,16 +334,35 @@ class Form {
     handeInput() {
         const newQuery = this.inputEl.value;
         const parsedQuery = this.parseQuery(newQuery);
+        this.suggester.suggest(parsedQuery);
+
         if (!newQuery) {
             this.hide();
-        } else {
-            this.suggester.suggest(parsedQuery);
-            // this.suggester.setSuggestions(parsedQuery["redirect"]);
+        }
+        if (this.instantRedirect && parsedQuery.isKey) {
+            this.submitValue(newQuery);
         }
     }
+    submitForm() {
+        const parsedQuery = this.parseQuery(this.inputEl.value);
+        this.redirect(parsedQuery.redirect);
+    }
 
+    submitValue(value) {
+        this.inputEl.value = value;
+        this.submitForm();
+    }
+
+    redirect(link, forceNewTab) {
+        if (this.newTab || forceNewTab) {
+            window.open(link, "_blank", "noopener noreferrer");
+        } else {
+            window.location.href = link;
+        }
+    }
     registerEvent() {
         this.inputEl.addEventListener("input", this.handleInput);
+        this.formEl.addEventListener("submit", this.submitForm, false);
     }
 }
 
