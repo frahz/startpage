@@ -31,7 +31,9 @@ body {
 
 .right-container {
     grid-area: right;
-    height: 50%;
+    position: relative;
+    top: 29%;
+    height: 100%;
     width: 100%;
 }
 
@@ -45,7 +47,7 @@ body {
     flex-direction: column;
     align-items: center;
     font-size: 40px;
-    padding-top: 60px;
+    /* padding-top: 60px; */
 }
 
 .category {
